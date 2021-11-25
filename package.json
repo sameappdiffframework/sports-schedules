@@ -1,0 +1,29 @@
+{
+  "name": "sport-schedules",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jasmine --require=ts-node/register --config=jasmine.json --reporter=../../../spec/reporter",
+    "prepublishOnly": "npm run build",
+    "build": "tsc",
+    "start": "ts-node src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sameappdiffframework/sports-schedules.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sameappdiffframework/sports-schedules/issues"
+  },
+  "homepage": "https://github.com/sameappdiffframework/sports-schedules#readme",
+  "devDependencies": {
+    "@types/jasmine": "^3.10.2",
+    "jasmine": "3.10.0",
+    "jasmine-spec-reporter": "^7.0.0",
+    "ts-node": "10.4.0",
+    "typescript": "4.5.2"
+  }
+}
