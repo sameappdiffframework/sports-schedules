@@ -74,6 +74,9 @@ export function getSchedule(): Promise<Schedule> {
     .then(([games, teams]) => {
       const teamSchedules = parseTeamSchedules(games);
       return {
+        _meta: {
+          buildDate: new Date(),
+        },
         games: games,
         teams: teams,
         teamSchedules: teamSchedules
