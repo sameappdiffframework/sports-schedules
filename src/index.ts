@@ -20,7 +20,7 @@ const OUTPUT_DIR = 'output'
 const FILENAME = 'basketball.json'
 const OUTPUT_PATH = path.join(OUTPUT_DIR, FILENAME)
 getSchedule()
-  .then((result: Schedule) => JSON.stringify(result, replacer, 2))
+  .then((result: Schedule) => JSON.stringify(result, replacer))
   .then(tapAsync<string>(result => mkdir(OUTPUT_DIR)))
   .then(result => writeFile(OUTPUT_PATH, result))
   .then(filename => console.log('successfully wrote', filename))
