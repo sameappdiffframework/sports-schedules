@@ -20,10 +20,35 @@ export interface RawNBAGame {
   stt: string;
   gdte: string;
   etm: string;
+  an: string;
+  ac: string;
+  as: string;
 }
 
 export interface RawNBATeam {
   tn: string;
   ta: string;
   tc: string;
+}
+
+export interface RawNBAStandings {
+  league: {
+    standard: {
+      conference: {
+        east: RawConferenceStanding[];
+        west: RawConferenceStanding[];
+      }
+    }
+  }
+}
+
+export interface RawConferenceStanding {
+  win: string;
+  loss: string;
+  winPct: string;
+  confRank: string;
+  gamesBehind: string;
+  teamSitesOnly: {
+    teamTricode: string;
+  }
 }

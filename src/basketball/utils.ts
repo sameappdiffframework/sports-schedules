@@ -2,9 +2,9 @@ import type { Cheerio, CheerioAPI } from 'cheerio';
 import cheerio from "cheerio";
 import type { DataNode, Element } from 'domhandler';
 import fetch from "node-fetch";
-import type { Game, GameStatus, Schedule, Team } from '../model';
+import type { Game, GameStatus, Schedule, Team, TeamRecord } from '../model';
 import { parseTeams, parseTeamSchedules } from '../utils.js';
-import type { RawNBAGame, RawNBAMonthlySchedule, RawNBASchedule, RawNBATeam } from "./model";
+import type { RawNBAGame, RawNBAMonthlySchedule, RawNBASchedule, RawNBAStandings, RawNBATeam } from "./model";
 
 const SPORT = 'basketball';
 
@@ -21,7 +21,12 @@ function getRankings(): Promise<string[]> {
     .then((spanNodes: Cheerio<Element>) => spanNodes.toArray().map((d: Element) => (d.children[0] as DataNode).data));
 }
 
-function parseRawGames(games: RawNBASchedule, rankings: string[]): Game[] {
+function getStandings(): Promise<RawNBAStandings> {
+  return fetch('https://data.nba.net/prod/v1/current/standings_conference.json')
+    .then(response => response.json() as Promise<RawNBAStandings>)
+}
+
+function parseRawGames(games: RawNBASchedule, rankings: string[], standings: RawNBAStandings): Game[] {
   return games.lscd.reduce((games: Game[], currentMonth: RawNBAMonthlySchedule) => {
     const parsedMonth: Game[] = currentMonth.mscd.g
       .map((game: RawNBAGame) => ({
@@ -30,21 +35,27 @@ function parseRawGames(games: RawNBASchedule, rankings: string[]): Game[] {
         competitionDescription: 'NBA',
         league: 'NBA',
         status: parseStatus(game),
-        home: parseTeam(game.h, rankings),
-        away: parseTeam(game.v, rankings),
-        date: (game.stt === 'TBD') ? new Date(`${game.gdte}T19:00:00-0400`) : new Date(`${game.etm}-0400`)
+        home: parseTeam(game.h, rankings, standings),
+        away: parseTeam(game.v, rankings, standings),
+        date: (game.stt === 'TBD') ? new Date(`${game.gdte}T19:00:00-0400`) : new Date(`${game.etm}-0400`),
+        location: {
+          arena: game.an,
+          city: game.ac,
+          state: game.as
+        }
       }))
     return games.concat(parsedMonth);
   }, [] as Game[]);
 }
 
-function parseTeam(team: RawNBATeam, rankings: string[]): Team {
+function parseTeam(team: RawNBATeam, powerRankings: string[], standings: RawNBAStandings): Team {
   return {
     abbreviation: team.ta,
     nickname: team.tn,
     city: team.tc,
-    rank: findTeamRank(team.tn, rankings),
-    sport: SPORT
+    powerRank: findTeamRank(team.tn, powerRankings),
+    sport: SPORT,
+    record: findTeamRecord(team.ta, standings)
   }
 }
 
@@ -66,9 +77,25 @@ function findTeamRank(teamName: string, rankings: string[]): number {
   return zeroIndexedRank + 1;
 }
 
+function findTeamRecord(teamAbbreviation: string, standings: RawNBAStandings): TeamRecord {
+  const [east, west] = [standings.league.standard.conference.east, standings.league.standard.conference.west];
+  let confName = 'East';
+  let standing = east.find(standing => standing.teamSitesOnly.teamTricode.toLowerCase() === teamAbbreviation.toLowerCase())
+  if (standing === undefined) {
+    confName = 'West';
+    standing = west.find(standing => standing.teamSitesOnly.teamTricode.toLowerCase() === teamAbbreviation.toLowerCase())
+  }
+  return {
+    wins: Number(standing?.win),
+    losses: Number(standing?.loss),
+    conference: confName,
+    conferenceRank: Number(standing?.confRank)
+  }
+}
+
 export function getSchedule(): Promise<Schedule> {
-  const getGames = Promise.all([getRawNBASchedule(), getRankings()])
-    .then(([schedule, rankings]) => parseRawGames(schedule, rankings));
+  const getGames = Promise.all([getRawNBASchedule(), getRankings(), getStandings()])
+    .then(([schedule, rankings, standings]) => parseRawGames(schedule, rankings, standings));
   const getTeams = getGames.then(parseTeams)
   return Promise.all([getGames, getTeams])
     .then(([games, teams]) => {
