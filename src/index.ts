@@ -1,8 +1,27 @@
-import fetch from 'node-fetch';
+import fs from 'fs';
+import path from "path";
+import { getSchedule } from "./basketball/utils.js";
+import type { Schedule, Game } from "./model.js";
+import { mkdir, tapAsync, writeFile } from "./utils.js";
 
-export default function Hello(target?: string) {
-  return fetch('https://reqres.in/api/users')
-    .then(() => console.log('hello,', target || 'world'));
+function replacer(_: string, value: any) {
+  if (value instanceof Map) {
+    return Array.from(value as Map<string, Game[]>)
+      .reduce((obj, [key, value]) => {
+        obj[key] = value;
+        return obj;
+      }, {} as Record<string, Game[]>);
+  } else {
+    return value;
+  }
 }
 
-Hello();
+const OUTPUT_DIR = 'output'
+const FILENAME = 'basketball.json'
+const OUTPUT_PATH = path.join(OUTPUT_DIR, FILENAME)
+getSchedule()
+  .then((result: Schedule) => JSON.stringify(result, replacer, 2))
+  .then(tapAsync<string>(result => mkdir(OUTPUT_DIR)))
+  .then(result => writeFile(OUTPUT_PATH, result))
+  .then(filename => console.log('successfully wrote', filename))
+  .catch(err => console.error(err))
