@@ -38,6 +38,7 @@ function parseRawGames(games: RawNBASchedule, rankings: string[], standings: Raw
         home: parseTeam(game.h, rankings, standings),
         away: parseTeam(game.v, rankings, standings),
         date: (game.stt === 'TBD') ? new Date(`${game.gdte}T19:00:00-0400`) : new Date(`${game.etm}-0400`),
+        nationalNetwork: parseNationalNetwork(game),
         location: {
           arena: game.an,
           city: game.ac,
@@ -46,6 +47,11 @@ function parseRawGames(games: RawNBASchedule, rankings: string[], standings: Raw
       }))
     return games.concat(parsedMonth);
   }, [] as Game[]);
+}
+
+function parseNationalNetwork(game: RawNBAGame): string | undefined {
+  const nationalBroadcast = game.bd.b.find(broadcast => broadcast.scope === 'natl' && broadcast.lan.toLowerCase() === 'english' && broadcast.type === 'tv')
+  return nationalBroadcast?.disp;
 }
 
 function parseTeam(team: RawNBATeam, powerRankings: string[], standings: RawNBAStandings): Team {

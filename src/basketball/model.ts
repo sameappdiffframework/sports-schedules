@@ -23,6 +23,16 @@ export interface RawNBAGame {
   an: string;
   ac: string;
   as: string;
+  bd: {
+    b: RawBroadcastInfo[]
+  }
+}
+
+export interface RawBroadcastInfo {
+  disp: string;
+  scope: 'natl' | 'home' | 'away' | 'can'
+  lan: string;
+  type: 'tv' | 'radio'
 }
 
 export interface RawNBATeam {

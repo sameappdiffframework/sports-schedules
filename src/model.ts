@@ -10,7 +10,8 @@ export interface Game {
   location: {
     arena: string;
     city: string;
-  }
+  },
+  nationalNetwork?: string;
 }
 
 export interface Team {
