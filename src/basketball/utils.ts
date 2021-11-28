@@ -1,9 +1,10 @@
 import type { Cheerio, CheerioAPI } from 'cheerio';
 import cheerio from "cheerio";
 import type { DataNode, Element } from 'domhandler';
+import { DateTime } from 'luxon';
 import fetch from "node-fetch";
 import type { Game, GameStatus, Schedule, Team, TeamRecord } from '../model';
-import { parseTeams, parseTeamSchedules } from '../utils.js';
+import { parseSingleDaySchedules, parseTeams, parseTeamSchedules } from '../utils.js';
 import type { RawNBAGame, RawNBAMonthlySchedule, RawNBASchedule, RawNBAStandings, RawNBATeam } from "./model";
 
 const SPORT = 'basketball';
@@ -46,7 +47,12 @@ function parseRawGames(games: RawNBASchedule, rankings: string[], standings: Raw
         }
       }))
     return games.concat(parsedMonth);
-  }, [] as Game[]);
+  }, [] as Game[])
+  .sort((a: Game, b: Game) => {
+    const aDate: DateTime = DateTime.fromISO(a.date.toISOString());
+    const bDate: DateTime = DateTime.fromISO(b.date.toISOString());
+    return aDate.toMillis() - bDate.toMillis();
+  });
 }
 
 function parseNationalNetwork(game: RawNBAGame): string | undefined {
@@ -107,6 +113,7 @@ export function getSchedule(): Promise<Schedule> {
     .then(([games, teams]) => ({
       games: games,
       teams: teams,
-      teamSchedules: parseTeamSchedules(games)
+      teamSchedules: parseTeamSchedules(games),
+      gamesByDate: parseSingleDaySchedules(games)
     }))
 }

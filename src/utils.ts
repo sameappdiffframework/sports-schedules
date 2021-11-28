@@ -1,5 +1,6 @@
-import type { Game, Team } from "./model";
 import fs from 'fs';
+import { DateTime } from 'luxon';
+import type { Game, Team } from "./model";
 
 export function tap<T>(func: (t: T) => void): (t: T) => T {
   return (data: T) => {
@@ -69,4 +70,21 @@ export function parseTeamSchedules(allGames: Game[]): Map<string, Game[]> {
       })
       return teamGames;
     }, new Map<string, Game[]>());
+}
+
+export function parseSingleDaySchedules(allGames: Game[]): Record<string, Game[]> {
+  const dateGamesMap = allGames.reduce((schedule, game: Game) => {
+    const gameDate = DateTime.fromISO(game.date.toISOString())
+      .setZone('America/New_York')
+      .startOf('day')
+      .toISO()
+    if (schedule.has(gameDate)) {
+      const games = schedule.get(gameDate) as Game[];
+      schedule.set(gameDate, [...games, game]);
+    } else {
+      schedule.set(gameDate, [game]);
+    }
+    return schedule;
+  }, new Map<string, Game[]>());
+  return Object.fromEntries(dateGamesMap);
 }

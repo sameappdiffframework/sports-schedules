@@ -1,3 +1,5 @@
+import { DateTime } from "luxon";
+
 export interface Game {
   code: string;
   description: string;
@@ -37,7 +39,8 @@ export type GameStatus = 'tbd' | 'complete' | 'future' | 'active'
 export interface Schedule {
   games: Game[];
   teams: Team[];
-  teamSchedules: Map<string, Game[]>
+  teamSchedules: Map<string, Game[]>;
+  gamesByDate: Record<string, Game[]>;
 }
 
 export interface MetaInfo {
