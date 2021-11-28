@@ -16,12 +16,18 @@ function replacer(_: string, value: any) {
   }
 }
 
-const OUTPUT_DIR = 'output'
-const FILENAME = 'basketball.json'
-const OUTPUT_PATH = path.join(OUTPUT_DIR, FILENAME)
+function writeSchedule(schedule: Schedule) {
+  const keys: Array<keyof Schedule> = ['games', 'teams', 'teamSchedules'];
+  const fileWrites: Promise<fs.PathLike>[] = keys.map(key => {
+    const filepath = path.join(OUTPUT_DIR, `${key}.json`);
+    return writeFile(filepath, JSON.stringify(schedule[key], replacer))
+  })
+  return Promise.all(fileWrites);
+}
+
+const OUTPUT_DIR = 'output/basketball'
 getSchedule()
-  .then((result: Schedule) => JSON.stringify(result, replacer))
-  .then(tapAsync<string>(result => mkdir(OUTPUT_DIR)))
-  .then(result => writeFile(OUTPUT_PATH, result))
-  .then(filename => console.log('successfully wrote', filename))
+  .then(tapAsync<Schedule>(result => mkdir(OUTPUT_DIR)))
+  .then(writeSchedule)
+  .then(filenames => console.log('successfully wrote', filenames))
   .catch(err => console.error(err))
