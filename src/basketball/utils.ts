@@ -29,30 +29,36 @@ function getStandings(): Promise<RawNBAStandings> {
 
 function parseRawGames(games: RawNBASchedule, rankings: string[], standings: RawNBAStandings): Game[] {
   return games.lscd.reduce((games: Game[], currentMonth: RawNBAMonthlySchedule) => {
-    const parsedMonth: Game[] = currentMonth.mscd.g
-      .map((game: RawNBAGame) => ({
-        code: game.gcode,
-        description: game.seri,
-        competitionDescription: 'NBA',
-        league: 'NBA',
-        status: parseStatus(game),
-        home: parseTeam(game.h, rankings, standings),
-        away: parseTeam(game.v, rankings, standings),
-        date: (game.stt === 'TBD') ? new Date(`${game.gdte}T19:00:00-0400`) : new Date(`${game.gdtutc}T${game.utctm}:00Z`),
-        nationalNetwork: parseNationalNetwork(game),
-        location: {
-          arena: game.an,
-          city: game.ac,
-          state: game.as
-        }
-      }))
+    const parsedMonth: Game[] = currentMonth.mscd.g.map(game => parseRawGame(game, rankings, standings))
     return games.concat(parsedMonth);
   }, [] as Game[])
-  .sort((a: Game, b: Game) => {
-    const aDate: DateTime = DateTime.fromISO(a.date.toISOString());
-    const bDate: DateTime = DateTime.fromISO(b.date.toISOString());
-    return aDate.toMillis() - bDate.toMillis();
-  });
+    .sort((a: Game, b: Game) => {
+      const aDate: DateTime = DateTime.fromISO(a.date.toISOString());
+      const bDate: DateTime = DateTime.fromISO(b.date.toISOString());
+      return aDate.toMillis() - bDate.toMillis();
+    });
+}
+
+function parseRawGame(game: RawNBAGame, rankings: string[], standings: RawNBAStandings): Game {
+  const home = parseTeam(game.h, rankings, standings);
+  const away = parseTeam(game.v, rankings, standings);
+  return {
+    code: game.gcode,
+    description: game.seri,
+    competitionDescription: 'NBA',
+    league: 'NBA',
+    status: parseStatus(game),
+    home: home,
+    away: away,
+    date: (game.stt === 'TBD') ? new Date(`${game.gdte}T19:00:00-0400`) : new Date(`${game.gdtutc}T${game.utctm}:00Z`),
+    nationalNetwork: parseNationalNetwork(game),
+    topTenMatchup: home.powerRank <= 10 && away.powerRank <= 10,
+    location: {
+      arena: game.an,
+      city: game.ac,
+      state: game.as
+    }
+  }
 }
 
 function parseNationalNetwork(game: RawNBAGame): string | undefined {
