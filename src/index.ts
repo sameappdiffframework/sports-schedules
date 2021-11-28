@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from "path";
 import { getSchedule } from "./basketball/utils.js";
-import type { Schedule, Game } from "./model.js";
+import type { Schedule, Game, MetaInfo } from "./model.js";
 import { mkdir, tapAsync, writeFile } from "./utils.js";
 
 function replacer(_: string, value: any) {
@@ -18,9 +18,11 @@ function replacer(_: string, value: any) {
 
 function writeSchedule(schedule: Schedule) {
   const keys: Array<keyof Schedule> = ['games', 'teams', 'teamSchedules'];
+  const meta: MetaInfo = { _meta: { buildDate: new Date() } }
   const fileWrites: Promise<fs.PathLike>[] = keys.map(key => {
     const filepath = path.join(OUTPUT_DIR, `${key}.json`);
-    return writeFile(filepath, JSON.stringify(schedule[key], replacer))
+    const data = Object.assign({}, { [key]: schedule[key] }, meta)
+    return writeFile(filepath, JSON.stringify(data, replacer))
   })
   return Promise.all(fileWrites);
 }

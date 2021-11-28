@@ -104,15 +104,9 @@ export function getSchedule(): Promise<Schedule> {
     .then(([schedule, rankings, standings]) => parseRawGames(schedule, rankings, standings));
   const getTeams = getGames.then(parseTeams)
   return Promise.all([getGames, getTeams])
-    .then(([games, teams]) => {
-      const teamSchedules = parseTeamSchedules(games);
-      return {
-        _meta: {
-          buildDate: new Date(),
-        },
-        games: games,
-        teams: teams,
-        teamSchedules: teamSchedules
-      }
-    })
+    .then(([games, teams]) => ({
+      games: games,
+      teams: teams,
+      teamSchedules: parseTeamSchedules(games)
+    }))
 }

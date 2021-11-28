@@ -35,10 +35,13 @@ export interface TeamRecord {
 export type GameStatus = 'tbd' | 'complete' | 'future' | 'active'
 
 export interface Schedule {
-  _meta: {
-    buildDate: Date;
-  };
   games: Game[];
   teams: Team[];
   teamSchedules: Map<string, Game[]>
+}
+
+export interface MetaInfo {
+  _meta: {
+    buildDate: Date;
+  }
 }
