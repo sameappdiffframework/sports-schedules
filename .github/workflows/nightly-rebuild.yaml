@@ -1,0 +1,16 @@
+name: Nightly rebuild
+on:
+  workflow_dispatch:
+  schedule:
+    # 4am EDT / 8am UTC daily
+    - cron: '0 8 * * *'
+jobs:
+  build:
+    name: Request Netlify Webhook
+    runs-on: ubuntu-latest
+    steps:
+      - name: POST to Build Hook
+        env:
+          BUILD_KEY: ${{ secrets.NETLIFY_BUILD_KEY }}
+        run: |
+          curl -X POST -d {} https://api.netlify.com/build_hooks/"$BUILD_KEY"?trigger_title=Automated+nightly+rebuild
