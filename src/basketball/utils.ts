@@ -38,7 +38,7 @@ function parseRawGames(games: RawNBASchedule, rankings: string[], standings: Raw
         status: parseStatus(game),
         home: parseTeam(game.h, rankings, standings),
         away: parseTeam(game.v, rankings, standings),
-        date: (game.stt === 'TBD') ? new Date(`${game.gdte}T19:00:00-0400`) : new Date(`${game.etm}-0400`),
+        date: (game.stt === 'TBD') ? new Date(`${game.gdte}T19:00:00-0400`) : new Date(`${game.gdtutc}T${game.utctm}:00Z`),
         nationalNetwork: parseNationalNetwork(game),
         location: {
           arena: game.an,

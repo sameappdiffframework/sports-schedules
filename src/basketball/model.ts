@@ -20,6 +20,8 @@ export interface RawNBAGame {
   stt: string;
   gdte: string;
   etm: string;
+  utctm: string;
+  gdtutc: string;
   an: string;
   ac: string;
   as: string;
