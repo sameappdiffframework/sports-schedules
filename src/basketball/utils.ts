@@ -111,7 +111,7 @@ function findTeamRecord(teamAbbreviation: string, standings: RawNBAStandings): T
   }
 }
 
-export function getSchedule(): Promise<Schedule> {
+export function getBasketballSchedule(): Promise<Schedule> {
   const getGames = Promise.all([getRawNBASchedule(), getRankings(), getStandings()])
     .then(([schedule, rankings, standings]) => parseRawGames(schedule, rankings, standings));
   const getTeams = getGames.then(parseTeams)

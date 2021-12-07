@@ -24,7 +24,7 @@ export interface Team {
   city: string;
   powerRank: number;
   sport: string;
-  record: TeamRecord
+  record?: TeamRecord
 }
 
 export interface TeamRecord {
